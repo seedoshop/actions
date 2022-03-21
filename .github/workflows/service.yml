@@ -280,7 +280,7 @@ jobs:
 
       - name: Start docker dependencies
         run: |
-          make functional-start-docker
+          make functional-test-up
 
       - name: Wait service to initialize
         uses: juliangruber/sleep-action@v1
@@ -289,7 +289,7 @@ jobs:
 
       - name: Run functional tests
         run: |
-          make functional-run-tests
+          make functional-test-run
 
       - name: Docker logs
         if: ${{ failure() }}
@@ -307,4 +307,4 @@ jobs:
       - name: Stop docker dependencies
         if: ${{ always() }}
         run: |
-          make functional-stop-docker
+          make functional-test-down
