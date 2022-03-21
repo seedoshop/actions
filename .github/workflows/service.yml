@@ -11,6 +11,10 @@ on:
         required: false
         type: string
         default: "cmd/server/main.go"
+      sqlc:
+        required: false
+        type: string
+        default: "false"
       test_functional_enabled:
         required: false
         type: string
@@ -45,6 +49,11 @@ jobs:
           TOKEN: ${{ secrets.PRIVATE_GITHUB_TOKEN }}
         run: |
           git config --global url."https://${USER}:${TOKEN}@github.com/seedoshop/".insteadOf "https://github.com/seedoshop/"
+
+      - name: Install SQLC
+        if: ${{ inputs.sqlc == 'true' }}
+        run: |
+          go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
 
       - uses: actions/cache@v2
         with:
