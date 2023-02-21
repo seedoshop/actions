@@ -6,15 +6,22 @@ on:
       go_version:
         required: false
         type: string
-        default: "^1.17"
+        default: "1.20"
+      golangci_lint_version:
+        required: false
+        type: string
+        default: "v1.50.1"
       service_main_file:
         required: false
         type: string
         default: "cmd/server/main.go"
       sqlc:
         required: false
+        type: boolean
+      sqlc_version:
+        required: false
         type: string
-        default: "false"
+        default: "latest"
       test_functional_enabled:
         required: false
         type: string
@@ -35,13 +42,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{inputs.go_version}}
         id: go
 
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Granting private modules access
         env:
@@ -49,13 +56,15 @@ jobs:
           TOKEN: ${{ secrets.PRIVATE_GITHUB_TOKEN }}
         run: |
           git config --global url."https://${USER}:${TOKEN}@github.com/seedoshop/".insteadOf "https://github.com/seedoshop/"
+          git config --global url."https://${USER}:${TOKEN}@github.com/setare/".insteadOf "https://github.com/setare/"
 
       - name: Install SQLC
-        if: ${{ inputs.sqlc == 'true' }}
+        if: ${{ inputs.sqlc }} == 'true'
         run: |
-          go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
+          go install github.com/kyleconroy/sqlc/cmd/sqlc@${{ inputs.sqlc_version }}
+          sqlc version
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
@@ -65,12 +74,14 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Get dependencies
+        env:
+          GOPRIVATE: github.com/seedoshop;github.com/setare
         run: |
           go mod download
 
       - name: Go generate
         run: |
-          go generate ./...
+          make generate
 
       - name: Check if mocks are updated
         uses: setare/git-changes-action@v0.1.4
@@ -84,22 +95,22 @@ jobs:
       - check-generation
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{inputs.go_version}}
         id: go
 
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Granting private modules access
         env:
           USER: ${{ secrets.PRIVATE_GITHUB_USER }}
           TOKEN: ${{ secrets.PRIVATE_GITHUB_TOKEN }}
         run: |
-          git config --global url."https://${USER}:${TOKEN}@github.com/seedoshop/".insteadOf "https://github.com/seedoshop/"
+          git config --global url."https://${USER}:${TOKEN}@github.com/setare/".insteadOf "https://github.com/setare/"
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
@@ -109,6 +120,8 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Get dependencies
+        env:
+          GOPRIVATE: github.com/seedoshop;github.com/setare
         run: |
           go mod download
 
@@ -124,13 +137,13 @@ jobs:
       - check-generation
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{inputs.go_version}}
         id: go
 
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           persist-credentials: true
 
@@ -139,9 +152,9 @@ jobs:
           USER: ${{secrets.PRIVATE_GITHUB_USER}}
           TOKEN: ${{secrets.PRIVATE_GITHUB_TOKEN}}
         run: |
-          git config --global url."https://${USER}:${TOKEN}@github.com/seedoshop/".insteadOf "https://github.com/seedoshop/"
+          git config --global url."https://${USER}:${TOKEN}@github.com/setare/".insteadOf "https://github.com/setare/"
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
@@ -151,10 +164,15 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Get dependencies
+        env:
+          GOPRIVATE: github.com/seedoshop;github.com/setare
         run: |
           go mod download
 
-      - uses: setare/go-lint-action@v0.1.2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: ${{inputs.golangci_lint_version}}
 
   security:
     name: Security checks
@@ -164,22 +182,22 @@ jobs:
       - check-generation
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{inputs.go_version}}
         id: go
 
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Granting private modules access
         env:
           USER: ${{secrets.PRIVATE_GITHUB_USER}}
           TOKEN: ${{secrets.PRIVATE_GITHUB_TOKEN}}
         run: |
-          git config --global url."https://${USER}:${TOKEN}@github.com/seedoshop/".insteadOf "https://github.com/seedoshop/"
+          git config --global url."https://${USER}:${TOKEN}@github.com/setare/".insteadOf "https://github.com/setare/"
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
@@ -190,11 +208,11 @@ jobs:
 
       - name: Get dependencies
         env:
-          GOPRIVATE: github.com/seedoshop
+          GOPRIVATE: github.com/seedoshop;github.com/setare
         run: |
           go mod download
 
-      - uses: setare/go-gosec-action@v0.1.0
+      - uses: setare/go-gosec-action@v0.2.2
 
   unit-tests:
     name: Unit tests
@@ -204,22 +222,22 @@ jobs:
       - security
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{inputs.go_version}}
         id: go
 
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Granting private modules access
         env:
           USER: ${{secrets.PRIVATE_GITHUB_USER}}
           TOKEN: ${{secrets.PRIVATE_GITHUB_TOKEN}}
         run: |
-          git config --global url."https://${USER}:${TOKEN}@github.com/seedoshop/".insteadOf "https://github.com/seedoshop/"
+          git config --global url."https://${USER}:${TOKEN}@github.com/setare/".insteadOf "https://github.com/setare/"
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
@@ -229,6 +247,8 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Get dependencies
+        env:
+          GOPRIVATE: github.com/seedoshop;github.com/setare
         run: |
           go mod download
 
@@ -244,22 +264,22 @@ jobs:
     if: ${{ inputs.test_functional_enabled == 'true' }}
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{inputs.go_version}}
         id: go
 
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Granting private modules access
         env:
           USER: ${{secrets.PRIVATE_GITHUB_USER}}
           TOKEN: ${{secrets.PRIVATE_GITHUB_TOKEN}}
         run: |
-          git config --global url."https://${USER}:${TOKEN}@github.com/seedoshop/".insteadOf "https://github.com/seedoshop/"
+          git config --global url."https://${USER}:${TOKEN}@github.com/setare/".insteadOf "https://github.com/setare/"
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.cache/go-build
@@ -269,6 +289,8 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Get dependencies
+        env:
+          GOPRIVATE: github.com/seedoshop;github.com/setare
         run: |
           go mod download
 
@@ -296,15 +318,7 @@ jobs:
       - name: Docker logs
         if: ${{ failure() }}
         run: |
-          docker-compose -f test/docker-compose.yml logs > docker.log
-      
-      - name: Archive artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: Container logs
-          path: docker.log
-          retention-days: 7
-
+          docker-compose -f test/docker-compose.yaml logs
 
       - name: Stop docker dependencies
         if: ${{ always() }}
