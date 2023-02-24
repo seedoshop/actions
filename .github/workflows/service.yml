@@ -7,10 +7,6 @@ on:
         required: false
         type: string
         default: "1.20"
-      golangci_lint_version:
-        required: false
-        type: string
-        default: "v1.50.1"
       service_main_file:
         required: false
         type: string
@@ -18,10 +14,6 @@ on:
       sqlc:
         required: false
         type: boolean
-      sqlc_version:
-        required: false
-        type: string
-        default: "latest"
       test_functional_enabled:
         required: false
         type: string
@@ -57,12 +49,6 @@ jobs:
         run: |
           echo "machine github.com login ${USER} ${TOKEN} APIKEY" >> $HOME/.netrc
           git config --global url."https://${USER}:${TOKEN}@github.com".insteadOf "https://github.com"
-
-      - name: Install SQLC
-        if: ${{ inputs.sqlc }} == 'true'
-        run: |
-          go install github.com/kyleconroy/sqlc/cmd/sqlc@${{ inputs.sqlc_version }}
-          sqlc version
 
       - uses: actions/cache@v3
         with:
@@ -172,10 +158,11 @@ jobs:
         run: |
           go mod download
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: ${{inputs.golangci_lint_version}}
+      - name: Run golangci-lint
+        env:
+          GOPRIVATE: github.com/seedoshop,github.com/setare
+        run: |
+          make lint
 
   security:
     name: Security checks
@@ -216,7 +203,11 @@ jobs:
         run: |
           go mod download
 
-      - uses: setare/go-gosec-action@v0.2.2
+      - name: Get dependencies
+        env:
+          GOPRIVATE: github.com/seedoshop,github.com/setare
+        run: |
+          make sec
 
   unit-tests:
     name: Unit tests
