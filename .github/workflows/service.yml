@@ -50,6 +50,15 @@ jobs:
           echo "machine github.com login ${USER} ${TOKEN} APIKEY" >> $HOME/.netrc
           git config --global url."https://${USER}:${TOKEN}@github.com".insteadOf "https://github.com"
 
+      - name: Restore dependency cache
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ./vendor
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+
       - name: Get dependencies
         env:
           GOPRIVATE: github.com/seedoshop,github.com/setare
@@ -58,10 +67,12 @@ jobs:
 
       - name: Save dependency cache
         uses: actions/cache@v3
-        id: cache
         with:
-          path: ./vendor
-          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ./vendor
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
   check-generation:
     name: Check generation
@@ -80,10 +91,13 @@ jobs:
 
       - name: Restore dependency cache
         uses: actions/cache/restore@v3
-        id: cache
         with:
-          path: ./vendor
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ./vendor
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          fail-on-cache-miss: true
 
       - name: Go generate
         run: |
@@ -111,10 +125,13 @@ jobs:
 
       - name: Restore dependency cache
         uses: actions/cache/restore@v3
-        id: cache
         with:
-          path: ./vendor
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ./vendor
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          fail-on-cache-miss: true
 
       - name: Check if CMD is buildable
         run: |
@@ -137,10 +154,13 @@ jobs:
 
       - name: Restore dependency cache
         uses: actions/cache/restore@v3
-        id: cache
         with:
-          path: ./vendor
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ./vendor
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          fail-on-cache-miss: true
 
       - name: Run golangci-lint
         run: |
@@ -163,12 +183,15 @@ jobs:
 
       - name: Restore dependency cache
         uses: actions/cache/restore@v3
-        id: cache
         with:
-          path: ./vendor
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ./vendor
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          fail-on-cache-miss: true
 
-      - name: Get dependencies
+      - name: Run security checks
         run: |
           make sec
 
@@ -190,10 +213,13 @@ jobs:
 
       - name: Restore dependency cache
         uses: actions/cache/restore@v3
-        id: cache
         with:
-          path: ./vendor
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ./vendor
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          fail-on-cache-miss: true
 
       - name: Unit tests
         run: |
@@ -217,10 +243,13 @@ jobs:
 
       - name: Restore dependency cache
         uses: actions/cache/restore@v3
-        id: cache
         with:
-          path: ./vendor
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ./vendor
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          fail-on-cache-miss: true
 
       - name: Build image
         run: |
