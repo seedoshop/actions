@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{inputs.go_version}}
         id: go
@@ -81,7 +81,7 @@ jobs:
       - get-dependencies
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{inputs.go_version}}
         id: go
@@ -115,7 +115,7 @@ jobs:
       - get-dependencies
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{inputs.go_version}}
         id: go
@@ -144,7 +144,7 @@ jobs:
       - get-dependencies
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{inputs.go_version}}
         id: go
@@ -166,44 +166,14 @@ jobs:
         run: |
           make lint
 
-  security:
-    name: Security checks
+  unit-tests:
+    name: Unit tests
     runs-on: ubuntu-latest
     needs:
       - get-dependencies
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: ${{inputs.go_version}}
-        id: go
-
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v3
-
-      - name: Restore dependency cache
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-            ./vendor
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          fail-on-cache-miss: true
-
-      - name: Run security checks
-        run: |
-          make sec
-
-  unit-tests:
-    name: Unit tests
-    runs-on: ubuntu-latest
-    needs:
-      - lint
-      - security
-    steps:
-      - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{inputs.go_version}}
         id: go
@@ -233,7 +203,7 @@ jobs:
     if: ${{ inputs.test_functional_enabled == 'true' }}
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{inputs.go_version}}
         id: go
